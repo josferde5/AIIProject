@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block titulo %} Registro {% endblock %}
+
+
+{% block contenido %}
+    <div>
+        <form class="" id="formulario" method="post" action=''>{% csrf_token %}
+            <fieldset>
+                <legend>Registro de usuarios</legend>
+                {{ formulario }}
+                <br>
+                <input class="" type='submit' value='Registrarse'/>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}

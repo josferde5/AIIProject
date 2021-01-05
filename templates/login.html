@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block titulo %} Inicio de sesión {% endblock %}
+
+
+{% block contenido %}
+    <div>
+        <form class="uk-form" id="formulario" method="post" action=''>{% csrf_token %}
+            <fieldset>
+                <legend>Inicio de sesión</legend>
+                {{ formulario }}
+                <br>
+                <input class="uk-button" type='submit' value='Iniciar sesión'/>
+            </fieldset>
+        </form>
+    </div>
+{% endblock %}

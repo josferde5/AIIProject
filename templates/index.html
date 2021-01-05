@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block titulo %}{% endblock %}
+
+
+{% block contenido %}
+    <div>
+        {% if user.is_authenticated %}
+            <p>Hola, {{ user.username }}</p>
+        {% else %}
+            <p>Hola ¿eres nuevo? <a href="/login">Regístrate</a></p>
+        {% endif %}
+    </div>
+{% endblock %}
