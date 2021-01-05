@@ -8,13 +8,22 @@ from django.contrib.auth.base_user import BaseUserManager
 class Genero(models.Model):
     nombre = models.CharField(max_length=50, verbose_name='Género', unique=True)
 
+    def __str__(self):
+        return self.nombre
+
 
 class Autor(models.Model):
     nombre = models.CharField(max_length=250, verbose_name='Autor')
 
+    def __str__(self):
+        return self.nombre
+
 
 class Editorial(models.Model):
     nombre = models.CharField(max_length=150, verbose_name='Editorial')
+
+    def __str__(self):
+        return self.nombre
 
 
 class Libro(models.Model):
@@ -24,6 +33,10 @@ class Libro(models.Model):
     autor = models.ForeignKey(Autor, on_delete=models.SET_NULL, null=True)
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
+    sinopsis = models.TextField(verbose_name='Sinopsis')
+
+    def __str__(self):
+        return self.titulo
 
 
 class MyUserManager(BaseUserManager):
