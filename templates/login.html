@@ -4,14 +4,71 @@
 
 
 {% block contenido %}
+    <script type="application/javascript">
+        $(document).ready(function() {
+            $("#show_hide_password a").on('click', function(event) {
+                event.preventDefault();
+                if($('#show_hide_password input').attr("type") == "text"){
+                    $('#show_hide_password input').attr('type', 'password');
+                    $('#show_hide_password i').addClass( "fa-eye-slash" );
+                    $('#show_hide_password i').removeClass( "fa-eye" );
+                }else if($('#show_hide_password input').attr("type") == "password"){
+                    $('#show_hide_password input').attr('type', 'text');
+                    $('#show_hide_password i').removeClass( "fa-eye-slash" );
+                    $('#show_hide_password i').addClass( "fa-eye" );
+                }
+            });
+        });
+    </script>
     <div>
-        <form class="uk-form" id="formulario" method="post" action=''>{% csrf_token %}
-            <fieldset>
-                <legend>Inicio de sesión</legend>
-                {{ formulario }}
-                <br>
-                <input class="uk-button" type='submit' value='Iniciar sesión'/>
-            </fieldset>
+        <form id="formulario" method="post" action=''>{% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ formulario.username.id_for_label }}">
+                    Usuario:
+                </label>
+                <input type="text" id="{{ formulario.username.id_for_label }}"
+                        name="{{ formulario.username.html_name }}"
+                        {% if formulario.username.field.required %}required{% endif %}
+                        class="form-control{% if formulario.username.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.username.value %}{{ formulario.username.value }}{% endif %}">
+                {% if formulario.username.help_text %}
+                <small class="text-muted">
+                    {{ formulario.username.help_text }}
+                </small>
+                {% endif %}
+                {% for err in formulario.username.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+            </div>
+
+
+            <div class="form-group">
+                <label for="{{ formulario.password.id_for_label }}">
+                        Contraseña:
+                </label>
+                <div class="input-group" id="show_hide_password">
+                    <input type="password" id="{{ formulario.password.id_for_label }}"
+                        name="{{ formulario.password.html_name }}"
+                        {% if formulario.password.field.required %}required{% endif %}
+                        class="form-control{% if formulario.password.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.password.value %}{{ formulario.password.value }}{% endif %}"
+                        aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="basic-addon1"><a href="#"><i class="fas fa-eye-slash"></i></a></span>
+                    </div>
+                </div>
+                {% if formulario.password.help_text %}
+                <small class="text-muted">
+                    {{ formulario.password.help_text }}
+                </small>
+                {% endif %}
+                {% for err in formulario.password.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+            </div>
+           
+            <button class="btn btn-dark mb-2" type='submit'>Iniciar sesión</button>
         </form>
     </div>
 {% endblock %}

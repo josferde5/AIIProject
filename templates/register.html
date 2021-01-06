@@ -4,14 +4,133 @@
 
 
 {% block contenido %}
+
+    <script type="application/javascript">
+        $(document).ready(function() {
+            $("#show_hide_password1 a").on('click', function(event) {
+                event.preventDefault();
+                if($('#show_hide_password1 input').attr("type") == "text"){
+                    $('#show_hide_password1 input').attr('type', 'password');
+                    $('#show_hide_password1 i').addClass( "fa-eye-slash" );
+                    $('#show_hide_password1 i').removeClass( "fa-eye" );
+                }else if($('#show_hide_password1 input').attr("type") == "password"){
+                    $('#show_hide_password1 input').attr('type', 'text');
+                    $('#show_hide_password1 i').removeClass( "fa-eye-slash" );
+                    $('#show_hide_password1 i').addClass( "fa-eye" );
+                }
+            });
+
+            $("#show_hide_password2 a").on('click', function(event) {
+                event.preventDefault();
+                if($('#show_hide_password2 input').attr("type") == "text"){
+                    $('#show_hide_password2 input').attr('type', 'password');
+                    $('#show_hide_password2 i').addClass( "fa-eye-slash" );
+                    $('#show_hide_password2 i').removeClass( "fa-eye" );
+                }else if($('#show_hide_password2 input').attr("type") == "password"){
+                    $('#show_hide_password2 input').attr('type', 'text');
+                    $('#show_hide_password2 i').removeClass( "fa-eye-slash" );
+                    $('#show_hide_password2 i').addClass( "fa-eye" );
+                }
+            });
+        });
+    </script>
+
     <div>
         <form class="" id="formulario" method="post" action=''>{% csrf_token %}
-            <fieldset>
-                <legend>Registro de usuarios</legend>
-                {{ formulario }}
-                <br>
-                <input class="" type='submit' value='Registrarse'/>
-            </fieldset>
+            <form id="formulario" method="post" action=''>{% csrf_token %}
+
+            <div class="form-group">
+                <label for="{{ formulario.username.id_for_label }}">
+                    Nombre de usuario:
+                </label>
+                <input type="text" id="{{ formulario.username.id_for_label }}"
+                        name="{{ formulario.username.html_name }}"
+                        {% if formulario.username.field.required %}required{% endif %}
+                        class="form-control{% if formulario.username.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.username.value %}{{ formulario.username.value }}{% endif %}">
+                {% for err in formulario.username.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+                {% if formulario.username.help_text %}
+                <small class="text-muted">
+                    {{ formulario.username.help_text }}
+                </small>
+                {% endif %}
+
+            </div>
+
+            <div class="form-group">
+                <label for="{{ formulario.genre.id_for_label }}">
+                    ¿Cuál es tu género preferido?
+                </label>
+                <select name="{{ formulario.genre.html_name }}" id="{{ formulario.genre.id_for_label }}"
+                        class="form-control{% if formulario.genre.errors %} is-invalid{% endif %}"
+                        {% if formulario.genre.field.required %}required{% endif %}>
+                    {% for choice in formulario.genre.field.choices %}
+                    <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% for err in formulario.genre.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+                {% if formulario.genre.help_text %}
+                <small class="text-muted">
+                    {{ formulario.genre.help_text }}
+                </small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ formulario.password1.id_for_label }}">
+                        Contraseña:
+                </label>
+                <div class="input-group" id="show_hide_password1">
+                    <input type="password" id="{{ formulario.password1.id_for_label }}"
+                        name="{{ formulario.password1.html_name }}"
+                        {% if formulario.password1.field.required %}required{% endif %}
+                        class="form-control{% if formulario.password1.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.password1.value %}{{ formulario.password1.value }}{% endif %}"
+                        aria-describedby="basic-addon1">
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="basic-addon1"><a href="#"><i class="fas fa-eye-slash" id="basic-addon1"></i></a></span>
+                    </div>
+                    {% for err in formulario.password1.errors %}
+                        <span class="invalid-feedback">{{ err }}</span>
+                    {% endfor %}
+                </div>
+                {% if formulario.password1.help_text %}
+                <small class="text-muted">
+                    {{ formulario.password1.help_text }}
+                </small>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ formulario.password2.id_for_label }}">
+                        Confirmar contraseña:
+                </label>
+                <div class="input-group" id="show_hide_password2">
+                    <input type="password" id="{{ formulario.password2.id_for_label }}"
+                        name="{{ formulario.password2.html_name }}"
+                        {% if formulario.password2.field.required %}required{% endif %}
+                        class="form-control{% if formulario.password2.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.password2.value %}{{ formulario.password2.value }}{% endif %}"
+                        aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                        <span class="input-group-text" id="basic-addon2"><a href="#"><i class="fas fa-eye-slash"></i></a></span>
+                    </div>
+                    {% for err in formulario.password2.errors %}
+                        <div class="invalid-feedback">{{ err }}</div>
+                    {% endfor %}
+                </div>
+                {% if formulario.password2.help_text %}
+                <small class="text-muted">
+                    {{ formulario.password2.help_text }}
+                </small>
+                {% endif %}
+            </div>
+
+            <button class="btn btn-dark mb-2" type='submit'>Registrarse</button>
         </form>
     </div>
 {% endblock %}

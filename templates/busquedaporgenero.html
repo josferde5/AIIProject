@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block generoActiva %} active{% endblock %}
+
+{% block titulo %}Búsqueda por género{% endblock %}
+
+{% block contenido %}
+    <div class="">
+        <h3>Busca libros por género</h3>
+        <form class="uk-form" id="formulario" method="post" action=''>{% csrf_token %}
+            <div class="form-group">
+                <label for="{{ formulario.genre.id_for_label }}">
+                    Estos son los géneros existentes en nuestro sistema:
+                </label>
+                <select name="{{ formulario.genre.html_name }}" id="{{ formulario.genre.id_for_label }}"
+                        class="form-control{% if formulario.genre.errors %} is-invalid{% endif %}"
+                        {% if formulario.genre.field.required %}required{% endif %}>
+                    {% for choice in formulario.genre.field.choices %}
+                    <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% for err in formulario.genre.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+                {% if formulario.genre.help_text %}
+                <small class="text-muted">
+                    {{ formulario.genre.help_text }}
+                </small>
+                {% endif %}
+            </div>
+            <button class="btn btn-dark mb-2" type='submit'>Buscar por género</button>
+    	</form>
+    </div>
+    <hr>
+
+    {% if libros %}
+        <ul class="list-group">
+        {% for libro in libros %}
+            <li class="list-group-item">{{ libro.titulo }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if user.is_registered %}
+        <hr>
+        <p>Aquí irán los libros recomendados para el usuario.</p>
+    {% endif %}
+
+{% endblock %}

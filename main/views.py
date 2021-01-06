@@ -5,8 +5,14 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import user_passes_test
 import urllib.request
 from bs4 import BeautifulSoup
-from .models import Autor, Genero, Editorial, Libro
+import main.populate as populate
+from .forms import BusquedaPorGeneroForm
+from whoosh.index import open_dir
+from whoosh.qparser import QueryParser
+from .models import Genero
+
 import re
+
 
 # Create your views here.
 
@@ -44,6 +50,30 @@ def login(request):
 def logout(request):
     log_out(request)
     return redirect('/')
+
+
+def buscar_por_genero(request):
+    formulario = BusquedaPorGeneroForm()
+    libros = None
+
+    if request.method == 'POST':
+        formulario = BusquedaPorGeneroForm(request.POST)
+        if formulario.is_valid():
+            genre = formulario.cleaned_data.get('genre')
+            ix = open_dir(populate.whoosh_dir)
+            libros = []
+            with ix.searcher() as searcher:
+                qp = QueryParser("genero", schema=ix.schema)
+                q = qp.parse(genre.nombre)
+                books = searcher.search(q)
+                for book in books:
+                    libros.append({'titulo': book['titulo'],
+                                   'titulo_original': book['titulo_original'],
+                                   'publicacion': book['anyo_publicacion'],
+                                   'autor': book['autor']})
+
+    return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros})
+
 
 
 def get_books_from(url):
@@ -94,43 +124,16 @@ def get_books():
     s = BeautifulSoup(f, "lxml")
 
     pagination_links = s.find('div', class_='pagination').find('div', class_='pages').find_all('a')
-    total_pages = int(pagination_links[len(pagination_links)-1].string.strip())
+    total_pages = int(pagination_links[len(pagination_links) - 1].string.strip())
 
-    for i in range(1, 2):
-        books = get_books_from('http://www.lecturalia.com/libros/ac/ultimos-actualizados/' + str(i))
-        l.extend(books)
+    # for i in range(1, 2):
+    books = get_books_from('http://www.lecturalia.com/libros/ac/ultimos-actualizados/')  # + str(i))
+    l.extend(books)
     return l
 
 
-def populate_whoosh(books):
-    pass
-
-
-def populate_django(books):
-    Autor.objects.all().delete()
-    Genero.objects.all().delete()
-    Editorial.objects.all().delete()
-    Libro.objects.all().delete()
-    for book in books:
-        author_name = book[3]
-        author, created = Autor.objects.get_or_create(nombre=author_name)
-        genre_name = book[4]
-        genre, created = Genero.objects.get_or_create(nombre=genre_name)
-        publisher_name = book[5]
-        if publisher_name is not None:
-            publisher, created = Editorial.objects.get_or_create(nombre=publisher_name)
-        else:
-            publisher = None
-        book = Libro.objects.create(titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
-                                    autor=author, genero=genre, editorial=publisher, sinopsis=book[6])
-
-
 @user_passes_test(lambda u: u.is_superuser, login_url="/")
-def populate(request):
+def populate_app(request):
     books = get_books()
-    populate_whoosh(books)
-    populate_django(books)
-
+    populate.populate_system(books)
     return redirect('/')
-    
-

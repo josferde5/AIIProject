@@ -24,5 +24,6 @@ urlpatterns = [
     path('login/', views.login),
     path('logout/', views.logout),
     path('register/', views.register),
-    path('populate/', views.populate),
+    path('populate/', views.populate_app),
+    path('generos/', views.buscar_por_genero),
 ]
