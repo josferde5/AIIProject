@@ -6,9 +6,10 @@ from django.contrib.auth.decorators import user_passes_test
 import urllib.request
 from bs4 import BeautifulSoup
 import main.populate as populate
-from .forms import BusquedaPorGeneroForm
+from .forms import BusquedaPorGeneroForm, BusquedaPorEditorialForm, BusquedaPorAnyoPublicacionForm
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser
+from whoosh.query import NumericRange
 from .models import Genero
 
 import re
@@ -74,6 +75,51 @@ def buscar_por_genero(request):
 
     return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros})
 
+
+def buscar_por_editorial(request):
+    formulario = BusquedaPorEditorialForm()
+    libros = None
+
+    if request.method == 'POST':
+        formulario = BusquedaPorEditorialForm(request.POST)
+        if formulario.is_valid():
+            publisher = formulario.cleaned_data.get('publisher')
+            ix = open_dir(populate.whoosh_dir)
+            libros = []
+            with ix.searcher() as searcher:
+                qp = QueryParser("editorial", schema=ix.schema)
+                q = qp.parse(publisher.nombre)
+                books = searcher.search(q)
+                for book in books:
+                    libros.append({'titulo': book['titulo'],
+                                   'titulo_original': book['titulo_original'],
+                                   'publicacion': book['anyo_publicacion'],
+                                   'autor': book['autor']})
+
+    return render(request, 'busquedaporeditorial.html', {'formulario': formulario, 'libros': libros})
+
+
+def buscar_por_anyo_publicacion(request):
+    formulario = BusquedaPorAnyoPublicacionForm()
+    libros = None
+
+    if request.method == 'POST':
+        formulario = BusquedaPorAnyoPublicacionForm(request.POST)
+        if formulario.is_valid():
+            start = formulario.cleaned_data.get('start')
+            end = formulario.cleaned_data.get('end')
+            ix = open_dir(populate.whoosh_dir)
+            libros = []
+            with ix.searcher() as searcher:
+                q = NumericRange('anyo_publicacion', start, end)
+                books = searcher.search(q)
+                for book in books:
+                    libros.append({'titulo': book['titulo'],
+                                   'titulo_original': book['titulo_original'],
+                                   'publicacion': book['anyo_publicacion'],
+                                   'autor': book['autor']})
+
+    return render(request, 'busquedaporanyopublicacion.html', {'formulario': formulario, 'libros': libros})
 
 
 def get_books_from(url):

@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block anyoActiva %} active{% endblock %}
+
+{% block titulo %}Búsqueda por año de publicación{% endblock %}
+
+{% block contenido %}
+    <div class="">
+        <h3>Busca libros por año de publicación</h3>
+        <form id="formulario" method="post" action=''>{% csrf_token %}
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="{{ formulario.start.id_for_label }}">
+                        Desde:
+                    </label>
+                    <input type="number" id="{{ formulario.start.id_for_label }}"
+                            name="{{ formulario.start.html_name }}"
+                            {% if formulario.start.field.required %}required{% endif %}
+                            class="form-control{% if formulario.start.errors %} is-invalid{% endif %}"
+                            value="{% if formulario.start.value %}{{ formulario.start.value }}{% endif %}">
+                    {% if formulario.start.help_text %}
+                    <small class="text-muted">
+                        {{ formulario.start.help_text }}
+                    </small>
+                    {% endif %}
+                    {% for err in formulario.start.errors %}
+                        <span class="invalid-feedback">{{ err }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="{{ formulario.end.id_for_label }}">
+                        Hasta:
+                    </label>
+                    <input type="number" id="{{ formulario.end.id_for_label }}"
+                            name="{{ formulario.end.html_name }}"
+                            {% if formulario.end.field.required %}required{% endif %}
+                            class="form-control{% if formulario.end.errors %} is-invalid{% endif %}"
+                            value="{% if formulario.end.value %}{{ formulario.end.value }}{% endif %}">
+                    {% if formulario.end.help_text %}
+                    <small class="text-muted">
+                        {{ formulario.end.help_text }}
+                    </small>
+                    {% endif %}
+                    {% for err in formulario.end.errors %}
+                        <span class="invalid-feedback">{{ err }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            <button class="btn btn-dark mb-2" type='submit'>Buscar</button>
+    	</form>
+    </div>
+    <hr>
+
+    {% if libros %}
+        <ul class="list-group">
+        {% for libro in libros %}
+            <li class="list-group-item">{{ libro.titulo }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if user.is_registered %}
+        <hr>
+        <p>Aquí irán los libros recomendados para el usuario.</p>
+    {% endif %}
+
+{% endblock %}

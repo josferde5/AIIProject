@@ -7,7 +7,7 @@
 {% block contenido %}
     <div class="">
         <h3>Busca libros por género</h3>
-        <form class="uk-form" id="formulario" method="post" action=''>{% csrf_token %}
+        <form id="formulario" method="post" action=''>{% csrf_token %}
             <div class="form-group">
                 <label for="{{ formulario.genre.id_for_label }}">
                     Estos son los géneros existentes en nuestro sistema:

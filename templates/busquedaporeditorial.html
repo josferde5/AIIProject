@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block editorialActiva %} active{% endblock %}
+
+{% block titulo %}Búsqueda por editorial{% endblock %}
+
+{% block contenido %}
+    <div class="">
+        <h3>Busca libros por editorial</h3>
+        <form id="formulario" method="post" action=''>{% csrf_token %}
+            <div class="form-group">
+                <label for="{{ formulario.publisher.id_for_label }}">
+                    Estos son las editoriales existentes en nuestro sistema:
+                </label>
+                <select name="{{ formulario.publisher.html_name }}" id="{{ formulario.publisher.id_for_label }}"
+                        class="form-control{% if formulario.publisher.errors %} is-invalid{% endif %}"
+                        {% if formulario.publisher.field.required %}required{% endif %}>
+                    {% for choice in formulario.publisher.field.choices %}
+                    <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                    {% endfor %}
+                </select>
+                {% for err in formulario.publisher.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+                {% if formulario.publisher.help_text %}
+                <small class="text-muted">
+                    {{ formulario.publisher.help_text }}
+                </small>
+                {% endif %}
+            </div>
+            <button class="btn btn-dark mb-2" type='submit'>Buscar por editorial</button>
+    	</form>
+    </div>
+    <hr>
+
+    {% if libros %}
+        <ul class="list-group">
+        {% for libro in libros %}
+            <li class="list-group-item">{{ libro.titulo }}</li>
+        {% endfor %}
+        </ul>
+    {% endif %}
+    {% if user.is_registered %}
+        <hr>
+        <p>Aquí irán los libros recomendados para el usuario.</p>
+    {% endif %}
+
+{% endblock %}

@@ -26,4 +26,6 @@ urlpatterns = [
     path('register/', views.register),
     path('populate/', views.populate_app),
     path('generos/', views.buscar_por_genero),
+    path('editoriales/', views.buscar_por_editorial),
+    path('fechapublicacion/', views.buscar_por_anyo_publicacion),
 ]
