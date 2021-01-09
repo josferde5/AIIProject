@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 
-{% block titulo %}Te recomendamos tu próximo libro{% endblock %}
+{% block tituloActiva %} active{% endblock %}
 
+{% block titulo %}Búsqueda por título{% endblock %}
 
 {% block contenido %}
-    <div class="title">
-        <h2 class="text-center">Encuentra tu próximo libro</h2>
-        <form id="formulario" method="post" action='/titulos/'>{% csrf_token %}
+    <div class="">
+        <h3>Busca libros por título</h3>
+        <form id="formulario" method="post" action=''>{% csrf_token %}
             <div class="form-group">
                 <label for="{{ formulario.title.id_for_label }}">
-                    <h6>Busca por título o título original</h6>
+                    Título:
                 </label>
                 <input type="text" id="{{ formulario.title.id_for_label }}"
                         name="{{ formulario.title.html_name }}"
@@ -25,17 +26,11 @@
                     <span class="invalid-feedback">{{ err }}</span>
                 {% endfor %}
             </div>
-            <button class="btn btn-dark mb-2" type='submit'>Buscar</button>
+            <button class="btn btn-dark mb-2" type='submit'>Buscar por título</button>
     	</form>
     </div>
-    <div>
-        {% if user.is_authenticated %}
-            <p>Hola, {{ user.username }}</p>
-        {% else %}
-            <p>Hola ¿eres nuevo? <a href="/register">Regístrate</a></p>
-        {% endif %}
-    </div>
-    <div>
+    <hr>
 
-    </div>
+    {% include 'vistaresultados.html' %}
+
 {% endblock %}

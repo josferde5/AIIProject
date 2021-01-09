@@ -33,7 +33,7 @@ class Libro(models.Model):
     autor = models.ForeignKey(Autor, on_delete=models.SET_NULL, null=True)
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
-    sinopsis = models.TextField(verbose_name='Sinopsis')
+    sinopsis = models.TextField(verbose_name='Sinopsis', null=True)
 
     def __str__(self):
         return self.titulo

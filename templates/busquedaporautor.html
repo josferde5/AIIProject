@@ -1,10 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block autorActiva %} active{% endblock %}
+
+{% block titulo %}Búsqueda por autor{% endblock %}
+
+{% block contenido %}
+    <div class="">
+        <h3>Busca libros por autor</h3>
+        <form id="formulario" method="post" action=''>{% csrf_token %}
+            <div class="form-group">
+                <label for="{{ formulario.author.id_for_label }}">
+                    Autor:
+                </label>
+                <input type="text" id="{{ formulario.author.id_for_label }}"
+                        name="{{ formulario.author.html_name }}"
+                        {% if formulario.author.field.required %}required{% endif %}
+                        class="form-control{% if formulario.author.errors %} is-invalid{% endif %}"
+                        value="{% if formulario.author.value %}{{ formulario.author.value }}{% endif %}">
+                {% if formulario.author.help_text %}
+                <small class="text-muted">
+                    {{ formulario.author.help_text }}
+                </small>
+                {% endif %}
+                {% for err in formulario.author.errors %}
+                    <span class="invalid-feedback">{{ err }}</span>
+                {% endfor %}
+            </div>
+            <button class="btn btn-dark mb-2" type='submit'>Buscar por autor</button>
+    	</form>
+    </div>
+    <hr>
+
+    {% include 'vistaresultados.html' %}
+
+{% endblock %}

@@ -1,0 +1,18 @@
+{% if libros %}
+        <div class="list-group">
+        {% for libro in libros %}
+            <a class="list-group-item list-group-item-action" href="/libro/{{ libro.id_libro }}">
+                <div class="row">
+                    <h6>{{ libro.titulo }} ({{ libro.publicacion }})</h6>
+                </div>
+                <div class="row">
+                    <p>{{ libro.autor }}</p>
+                </div>
+            </a>
+        {% endfor %}
+        </div>
+{% endif %}
+{% if user.is_authenticated %}
+        <hr>
+        <p>Aquí irán los libros recomendados para el usuario.</p>
+{% endif %}

@@ -28,4 +28,8 @@ urlpatterns = [
     path('generos/', views.buscar_por_genero),
     path('editoriales/', views.buscar_por_editorial),
     path('fechapublicacion/', views.buscar_por_anyo_publicacion),
+    path('autores/', views.buscar_por_autor),
+    path('titulos/', views.buscar_por_titulo),
+    path('libro/<int:id_libro>', views.vista_libro),
+    path('busqueda_avanzada/', views.busqueda_avanzada),
 ]

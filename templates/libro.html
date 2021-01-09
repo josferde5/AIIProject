@@ -1,10 +1,52 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block tituloActiva %} active{% endblock %}
+
+{% block titulo %}{{ libro.titulo }}{% endblock %}
+
+{% block contenido %}
+    <div class="book-title">
+        <h3>{{ libro.titulo }}</h3>
+        <h6>{{ libro.autor.nombre }}</h6>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <p>Aquí irá la imagen</p>
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <h6 class="col-md-12">Título original:</h6><br>
+                <p class="col-md-12">{{ libro.titulo_original }}</p>
+            </div>
+            <div class="row">
+                <h6 class="col-md-12">Editorial:</h6><br>
+                <p class="col-md-12">{{ libro.editorial }}</p>
+            </div>
+            <div class="row">
+                <h6 class="col-md-12">Año de publicación:</h6>
+                <p class="col-md-12">{{ libro.anyo_publicacion }}</p>
+            </div>
+            <div class="row">
+                <h6>Aquí irá el enlace de compra, si hay.</h6>
+            </div>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <h5>Sinopsis</h5>
+        {% if libro.sinopsis %}
+            <p>{{ libro.sinopsis }}</p>
+        {% else %}
+            <p>No hay sinopsis.</p>
+        {% endif %}
+    </div>
+    <hr>
+    <div class="row">
+        <h5>Aquí irá la review de una página especializada, si hay.</h5>
+    </div>
+    {% if user.is_authenticated %}
+        <hr>
+        <p>Aquí irán los libros recomendados para el usuario.</p>
+    {% endif %}
+
+{% endblock %}

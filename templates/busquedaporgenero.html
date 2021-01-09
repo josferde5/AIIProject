@@ -33,16 +33,6 @@
     </div>
     <hr>
 
-    {% if libros %}
-        <ul class="list-group">
-        {% for libro in libros %}
-            <li class="list-group-item">{{ libro.titulo }}</li>
-        {% endfor %}
-        </ul>
-    {% endif %}
-    {% if user.is_registered %}
-        <hr>
-        <p>Aquí irán los libros recomendados para el usuario.</p>
-    {% endif %}
+    {% include 'vistaresultados.html' %}
 
 {% endblock %}
