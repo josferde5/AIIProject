@@ -1,10 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends 'base.html' %}
 
-</body>
-</html>
+{% block guardadosActiva %} active{% endblock %}
+
+{% block titulo %}Mis libros guardados{% endblock %}
+
+{% block contenido %}
+    <div class="">
+        <h3>Libros guardados</h3>
+        <h6>Esta es tu lista de libros guardados:</h6>
+    </div>
+    <hr>
+
+    {% include 'vistaresultados.html' %}
+
+{% endblock %}

@@ -22,60 +22,63 @@
 
   </head>
   <body>
-  	<div class="menu">
-	    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-            <a class="navbar-brand" href="/">BookNet</a>
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+    <main>
+        <div class="menu">
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <a class="navbar-brand" href="/">BookNet</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse order-1 navbarSupportedContent">
-                <ul class="navbar-nav mr-auto">
-                    <li class="nav-item{% block generoActiva %} {% endblock %}">
-                        <a class="nav-link" href="/generos">Géneros</a>
-                    </li>
-                    <li class="nav-item{% block autorActiva %} {% endblock %}">
-                        <a class="nav-link" href="/autores">Autores</a>
-                    </li>
-                    <li class="nav-item{% block anyoActiva %} {% endblock %}">
-                        <a class="nav-link" href="/fechapublicacion">Año de publicación</a>
-                    </li>
-                    <li class="nav-item{% block editorialActiva %} {% endblock %}">
-                        <a class="nav-link" href="/editoriales">Editoriales</a>
-                    </li>
-                    <li class="nav-item{% block avanzadaActiva %} {% endblock %}">
-                        <a class="nav-link" href="/busqueda_avanzada">Búsqueda avanzada</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="collapse navbar-collapse order-3 navbarSupportedContent">
-                <ul class="navbar-nav ml-auto">
-                {% if user.is_authenticated %}
-                    <li class="nav-item{% block recomendacionesActiva %} {% endblock %}">
-                        <a class="nav-link" href="#">Recomendaciones</a>
-                    </li>
-                    <li class="nav-item{% block guardadosActiva %} {% endblock %}">
-                        <a class="nav-link" href="#">Mis libros guardados</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/logout">Cerrar sesión</a>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="/login">Iniciar sesión</a>
-                    </li>
-                {% endif %}
-                </ul>
-            </div>
-		</nav>
-    </div>
-    <br>
-    <div class="container">
-    {% block contenido %} {% endblock %}
-    </div>
-
-  <footer class="footer bg-light text-center text-lg-start">
-      <p>&copy; 2021 José Ramón Fernández de la Rosa - This is an AII Project</p>
-  </footer>
+                <div class="collapse navbar-collapse order-1 navbarSupportedContent">
+                    <ul class="navbar-nav mr-auto">
+                        <li class="nav-item{% block generoActiva %} {% endblock %}">
+                            <a class="nav-link" href="/generos">Géneros</a>
+                        </li>
+                        <li class="nav-item{% block autorActiva %} {% endblock %}">
+                            <a class="nav-link" href="/autores">Autores</a>
+                        </li>
+                        <li class="nav-item{% block anyoActiva %} {% endblock %}">
+                            <a class="nav-link" href="/fechapublicacion">Año de publicación</a>
+                        </li>
+                        <li class="nav-item{% block editorialActiva %} {% endblock %}">
+                            <a class="nav-link" href="/editoriales">Editoriales</a>
+                        </li>
+                        <li class="nav-item{% block avanzadaActiva %} {% endblock %}">
+                            <a class="nav-link" href="/busqueda_avanzada">Búsqueda avanzada</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="collapse navbar-collapse order-3 navbarSupportedContent">
+                    <ul class="navbar-nav ml-auto">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item{% block recomendacionesActiva %} {% endblock %}">
+                            <a class="nav-link" href="#">Recomendaciones</a>
+                        </li>
+                        <li class="nav-item{% block guardadosActiva %} {% endblock %}">
+                            <a class="nav-link" href="/guardados">Mis libros guardados</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/logout">Cerrar sesión</a>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">Iniciar sesión</a>
+                        </li>
+                    {% endif %}
+                    </ul>
+                </div>
+            </nav>
+        </div>
+        <br>
+        <div class="container">
+        {% block contenido %} {% endblock %}
+        </div>
+    </main>
+    <footer class="footer mt-auto bg-light text-center text-lg-start">
+        <div class="container">
+            <p>&copy; 2021 José Ramón Fernández de la Rosa - This is an AII Project</p>
+        </div>
+    </footer>
   </body>
 </html>

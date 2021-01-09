@@ -37,7 +37,8 @@ def populate_system(books):
         else:
             publisher = None
         l = Libro.objects.create(titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
-                                 autor=author, genero=genre, editorial=publisher, sinopsis=book[6])
+                                 autor=author, genero=genre, editorial=publisher, sinopsis=book[6],
+                                 url_imagen=book[7])
 
         writer.add_document(id=str(l.id), titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
                             autor=book[3], genero=book[4], editorial=book[5], sinopsis=book[6])

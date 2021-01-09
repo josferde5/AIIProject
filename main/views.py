@@ -11,7 +11,7 @@ from .forms import BusquedaPorGeneroForm, BusquedaPorEditorialForm, BusquedaPorA
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser, FuzzyTermPlugin, PhrasePlugin, SequencePlugin, MultifieldParser
 from whoosh.query import NumericRange
-from .models import Libro
+from .models import Libro, Usuario
 
 import re
 
@@ -62,7 +62,7 @@ def standard_search(qp, searcher, search_query):
     for book in books:
         libros.append({'titulo': book['titulo'],
                        'titulo_original': book['titulo_original'],
-                       'publicacion': book['anyo_publicacion'],
+                       'anyo_publicacion': book['anyo_publicacion'],
                        'autor': book['autor']})
 
     return libros
@@ -84,7 +84,7 @@ def numeric_range_search(q, searcher):
     for book in books:
         libros.append({'titulo': book['titulo'],
                        'titulo_original': book['titulo_original'],
-                       'publicacion': book['anyo_publicacion'],
+                       'anyo_publicacion': book['anyo_publicacion'],
                        'autor': book['autor']})
 
     return libros
@@ -108,10 +108,10 @@ def buscar_por_genero(request):
                 q = qp.parse(genre.nombre)
                 books = searcher.search(q)
                 for book in books:
-                    libros.append({'id_libro': book['id'],
+                    libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
-                                   'publicacion': book['anyo_publicacion'],
+                                   'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
     return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros})
@@ -132,10 +132,10 @@ def buscar_por_editorial(request):
                 q = qp.parse(publisher.nombre)
                 books = searcher.search(q)
                 for book in books:
-                    libros.append({'id_libro': book['id'],
+                    libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
-                                   'publicacion': book['anyo_publicacion'],
+                                   'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
     return render(request, 'busquedaporeditorial.html', {'formulario': formulario, 'libros': libros})
@@ -156,10 +156,10 @@ def buscar_por_anyo_publicacion(request):
                 q = NumericRange('anyo_publicacion', start, end)
                 books = searcher.search(q)
                 for book in books:
-                    libros.append({'id_libro': book['id'],
+                    libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
-                                   'publicacion': book['anyo_publicacion'],
+                                   'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
     return render(request, 'busquedaporanyopublicacion.html', {'formulario': formulario, 'libros': libros})
@@ -192,10 +192,10 @@ def buscar_por_autor(request):
                 books = searcher.search(q)
 
                 for book in books:
-                    libros.append({'id_libro': book['id'],
+                    libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
-                                   'publicacion': book['anyo_publicacion'],
+                                   'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
     return render(request, 'busquedaporautor.html', {'formulario': formulario, 'libros': libros})
@@ -228,10 +228,10 @@ def buscar_por_titulo(request):
                 books = fuzzy_term_search(qp, searcher, search_query)
 
                 for book in books:
-                    libros.append({'id_libro': book['id'],
+                    libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
-                                   'publicacion': book['anyo_publicacion'],
+                                   'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
     return render(request, 'busquedaportitulo.html', {'formulario': formulario, 'libros': libros})
@@ -316,10 +316,10 @@ def busqueda_avanzada(request):
                         books = searcher.search(q, filter=docnums)
 
                     for book in books:
-                        libros.append({'id_libro': book['id'],
+                        libros.append({'id': book['id'],
                                        'titulo': book['titulo'],
                                        'titulo_original': book['titulo_original'],
-                                       'publicacion': book['anyo_publicacion'],
+                                       'anyo_publicacion': book['anyo_publicacion'],
                                        'autor': book['autor']})
 
     return render(request, 'busquedaavanzada.html', {'formulario': formulario, 'libros': libros})
@@ -327,13 +327,33 @@ def busqueda_avanzada(request):
 
 def vista_libro(request, id_libro):
     libro = Libro.objects.get(pk=id_libro)
-    return render(request, 'libro.html', {'libro': libro})
+    msg = None
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        usuario = request.user
+        if not libro in request.user.saved_books.all():
+            request.user.saved_books.add(libro)
+            msg = 'Libro guardado correctamente.'
+            saved = True
+        else:
+            request.user.saved_books.remove(libro)
+            msg = 'Libro eliminado correctamente de tu lista.'
+            saved = False
+    elif request.method == 'POST' and not request.user.is_authenticated:
+        msg = 'Inicie sesión o regístrese para guardar libros.'
+        saved = False
+    elif request.user.is_authenticated:
+        saved = libro in request.user.saved_books.all()
+    else:
+        saved = False
+
+    return render(request, 'libro.html', {'libro': libro, 'saved': saved, 'msg': msg})
 
 
 @login_required
 def libros_guardados(request):
-    # TODO: Funcionalidad para guardar libros
-    pass
+    libros = usuario = request.user.saved_books.all()
+    return render(request, 'librosguardados.html', {'libros': libros})
 
 
 @login_required
@@ -343,7 +363,7 @@ def recomendaciones_usuario(request):
 
 
 def get_books_from(url):
-    # TODO: Mejorar BS (sinopsis, url_imagen), hacer BS en Casa del Libro y página de reviews
+    # TODO: Hacer BS en Casa del Libro
     l = []
     f = urllib.request.urlopen(url)
     s = BeautifulSoup(f, "lxml")
@@ -360,6 +380,7 @@ def get_books_from(url):
         f = urllib.request.urlopen(book_url)
         s = BeautifulSoup(f, "lxml")
         book_info = s.find('div', class_='profile__data').find('ul').find_all('li')
+        image_url = s.find('div', class_='profile__data').find('div', class_='photo').div.img['src']
         genre = None
         publisher = None
         for li in book_info:
@@ -374,15 +395,15 @@ def get_books_from(url):
                     publisher = li.p.find(text=True, recursive=False).strip()
             if li_title == 'Temas:':
                 genre = ''.join(li.p.a.stripped_strings)
-        synopsis_p = s.find('div', class_='profile__text')
-        if synopsis_p is not None and synopsis_p.div.p is None:
-            synopsis = ''.join(s.find('div', class_='profile__text').div.find(text=True, recursive=False).strip())
-        elif synopsis_p is not None:
-            synopsis = synopsis_p.text.strip()
+        synopsis_div = s.find('div', class_='profile__text')
+        if synopsis_div is not None:
+            h2 = str(synopsis_div.div.h2)
+            synopsis = synopsis_div.div.decode_contents()
+            synopsis = synopsis.replace(h2, '')
         else:
             synopsis = None
 
-        data = (title, original_title, year, author, genre, publisher, synopsis)
+        data = (title, original_title, year, author, genre, publisher, synopsis, image_url)
         l.append(data)
     return l
 

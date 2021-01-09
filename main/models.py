@@ -26,6 +26,11 @@ class Editorial(models.Model):
         return self.nombre
 
 
+class CasaLibro(models.Model):
+    url = models.URLField(verbose_name='URL de la Casa del Libro', primary_key=True)
+    precio = models.FloatField(verbose_name='Precio')
+
+
 class Libro(models.Model):
     titulo = models.CharField(max_length=250, verbose_name='Título')
     titulo_original = models.CharField(max_length=250, verbose_name='Título original')
@@ -34,6 +39,8 @@ class Libro(models.Model):
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
     sinopsis = models.TextField(verbose_name='Sinopsis', null=True)
+    url_imagen = models.URLField(verbose_name='URL de la portada')
+    casa_libro = models.OneToOneField(CasaLibro, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.titulo
@@ -77,6 +84,7 @@ class MyUserManager(BaseUserManager):
 
 class Usuario(AbstractUser):
     genre = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
+    saved_books = models.ManyToManyField(Libro)
 
     REQUIRED_FIELDS = ['email', 'genre']
 

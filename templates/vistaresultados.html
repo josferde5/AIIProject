@@ -1,9 +1,9 @@
 {% if libros %}
         <div class="list-group">
         {% for libro in libros %}
-            <a class="list-group-item list-group-item-action" href="/libro/{{ libro.id_libro }}">
+            <a class="list-group-item list-group-item-action" href="/libro/{{ libro.id }}">
                 <div class="row">
-                    <h6>{{ libro.titulo }} ({{ libro.publicacion }})</h6>
+                    <h6>{{ libro.titulo }} ({{ libro.anyo_publicacion }})</h6>
                 </div>
                 <div class="row">
                     <p>{{ libro.autor }}</p>
