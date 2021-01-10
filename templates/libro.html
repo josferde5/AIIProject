@@ -23,7 +23,7 @@
         </div>
     </div>
     <div class="row">
-        <h6 class="col-md-12">{{ libro.autor.nombre }}</h6>
+        <h6 class="col-md-12">{{ autores }}</h6>
     </div>
     <div class="row">
         <div class="col-md-6">
@@ -56,9 +56,20 @@
             <p>No hay sinopsis.</p>
         {% endif %}
     </div>
-    {% if user.is_authenticated %}
-        <hr>
-        <p>Aquí irán los libros recomendados para el usuario.</p>
-    {% endif %}
+    <hr>
+    <div class="row">
+        <h5>Libros relacionados</h5>
+    </div>
+    <div class="row">
+        {% for book in relacionados %}
+        <div class="list-inline col-md-3 d-flex justify-content-center text-center">
+            <a class="list-inline-item list-group-item-action align-middle" href="/libro/{{ book.id }}">
+                <img src="{{ book.url_imagen }}"  alt="" width="120px" height="160px"/>
+                <h6>{{ book.titulo }}</h6>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
 
 {% endblock %}

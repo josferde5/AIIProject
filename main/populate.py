@@ -1,5 +1,5 @@
 from .models import Autor, Genero, Editorial, Libro
-from whoosh.fields import Schema, TEXT, NUMERIC, ID
+from whoosh.fields import Schema, TEXT, NUMERIC, KEYWORD, ID
 from whoosh.index import create_in
 import logging
 import os
@@ -15,8 +15,8 @@ def populate_system(books):
     Editorial.objects.all().delete()
     Libro.objects.all().delete()
 
-    schem = Schema(id=ID(stored=True), titulo=TEXT(stored=True), titulo_original=TEXT(stored=True),
-                   anyo_publicacion=NUMERIC(int, 32, signed=False, stored=True), autor=TEXT(stored=True),
+    schem = Schema(id=ID(unique=True, stored=True), titulo=TEXT(stored=True), titulo_original=TEXT(stored=True),
+                   anyo_publicacion=NUMERIC(int, 32, signed=False, stored=True), autor=KEYWORD(stored=True, commas=True, scorable=True),
                    genero=TEXT(stored=True), editorial=TEXT(stored=True), sinopsis=TEXT)
 
     if os.path.exists(whoosh_dir):
@@ -27,8 +27,7 @@ def populate_system(books):
     writer = ix.writer()
 
     for book in books:
-        author_name = book[3]
-        author, created = Autor.objects.get_or_create(nombre=author_name)
+        authors = book[3]
         genre_name = book[4]
         genre, created = Genero.objects.get_or_create(nombre=genre_name)
         publisher_name = book[5]
@@ -36,12 +35,16 @@ def populate_system(books):
             publisher, created = Editorial.objects.get_or_create(nombre=publisher_name)
         else:
             publisher = None
-        l = Libro.objects.create(titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
-                                 autor=author, genero=genre, editorial=publisher, sinopsis=book[6],
-                                 url_imagen=book[7])
-
-        writer.add_document(id=str(l.id), titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
-                            autor=book[3], genero=book[4], editorial=book[5], sinopsis=book[6])
+        l, created = Libro.objects.get_or_create(titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
+                                                 genero=genre, editorial=publisher, sinopsis=book[6],
+                                                 url_imagen=book[7])
+        if created:
+            for a in authors:
+                author, created = Autor.objects.get_or_create(nombre=a)
+                l.autor.add(author)
+            authors_string = ",".join(authors)
+            writer.add_document(id=str(l.id), titulo=book[0], titulo_original=book[1], anyo_publicacion=int(book[2]),
+                                autor=authors_string, genero=book[4], editorial=book[5], sinopsis=book[6])
 
     writer.commit()
     logger.info('Whoosh index has been created successfully.')

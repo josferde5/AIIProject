@@ -11,7 +11,9 @@ from .forms import BusquedaPorGeneroForm, BusquedaPorEditorialForm, BusquedaPorA
 from whoosh.index import open_dir
 from whoosh.qparser import QueryParser, FuzzyTermPlugin, PhrasePlugin, SequencePlugin, MultifieldParser
 from whoosh.query import NumericRange
-from .models import Libro, Usuario
+from .models import Libro
+from .recommendations import calculate_similar_items, ItemFilteringDictionary, get_recommended_items_for_user, \
+    get_related_items_for_book
 
 import re
 
@@ -21,7 +23,10 @@ import re
 
 def index(request):
     formulario = BusquedaPorTituloForm()
-    return render(request, 'index.html', {'formulario': formulario})
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
+    return render(request, 'index.html', {'formulario': formulario, 'recomendados': recomendados})
 
 
 def register(request):
@@ -55,19 +60,6 @@ def logout(request):
     return redirect('/')
 
 
-def standard_search(qp, searcher, search_query):
-    libros = []
-    q = qp.parse(search_query)
-    books = searcher.search(q)
-    for book in books:
-        libros.append({'titulo': book['titulo'],
-                       'titulo_original': book['titulo_original'],
-                       'anyo_publicacion': book['anyo_publicacion'],
-                       'autor': book['autor']})
-
-    return libros
-
-
 def fuzzy_term_search(qp, searcher, search_query):
     qp.add_plugin(FuzzyTermPlugin())
     qp.remove_plugin_class(PhrasePlugin)
@@ -78,24 +70,15 @@ def fuzzy_term_search(qp, searcher, search_query):
     return books
 
 
-def numeric_range_search(q, searcher):
-    libros = []
-    books = searcher.search(q)
-    for book in books:
-        libros.append({'titulo': book['titulo'],
-                       'titulo_original': book['titulo_original'],
-                       'anyo_publicacion': book['anyo_publicacion'],
-                       'autor': book['autor']})
-
-    return libros
-
-
 # TODO: Paginación
 
 
 def buscar_por_genero(request):
     formulario = BusquedaPorGeneroForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaPorGeneroForm(request.POST)
@@ -114,12 +97,15 @@ def buscar_por_genero(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def buscar_por_editorial(request):
     formulario = BusquedaPorEditorialForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaPorEditorialForm(request.POST)
@@ -138,12 +124,15 @@ def buscar_por_editorial(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporeditorial.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaporeditorial.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def buscar_por_anyo_publicacion(request):
     formulario = BusquedaPorAnyoPublicacionForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaPorAnyoPublicacionForm(request.POST)
@@ -162,12 +151,15 @@ def buscar_por_anyo_publicacion(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporanyopublicacion.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaporanyopublicacion.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def buscar_por_autor(request):
     formulario = BusquedaPorAutorForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaPorAutorForm(request.POST)
@@ -198,12 +190,15 @@ def buscar_por_autor(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporautor.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaporautor.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def buscar_por_titulo(request):
     formulario = BusquedaPorTituloForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaPorTituloForm(request.POST)
@@ -221,25 +216,25 @@ def buscar_por_titulo(request):
             libros = []
             with ix.searcher() as searcher:
                 qp = MultifieldParser(['titulo', 'titulo_original'], schema=ix.schema)
-                # qp.add_plugin(FuzzyTermPlugin())
-                # qp.remove_plugin_class(PhrasePlugin)
-                # qp.add_plugin(SequencePlugin())
-                # q = qp.parse(search_query)
                 books = fuzzy_term_search(qp, searcher, search_query)
 
                 for book in books:
+                    au = book['autor']
                     libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaportitulo.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaportitulo.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def busqueda_avanzada(request):
     formulario = BusquedaAvanzadaForm()
     libros = None
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
     if request.method == 'POST':
         formulario = BusquedaAvanzadaForm(request.POST)
@@ -270,10 +265,6 @@ def busqueda_avanzada(request):
                             author_search_query = author_search_query + s + "~2 "
                         author_search_query = u'"' + author_search_query.strip() + '"~2'
                         qp = MultifieldParser(['titulo', 'titulo_original'], schema=ix.schema)
-                        # qp.add_plugin(FuzzyTermPlugin())
-                        # qp.remove_plugin_class(PhrasePlugin)
-                        # qp.add_plugin(SequencePlugin())
-                        # q = qp.parse(author_search_query)
                         books = fuzzy_term_search(qp, searcher, author_search_query)
 
                         for result in books:
@@ -322,11 +313,13 @@ def busqueda_avanzada(request):
                                        'anyo_publicacion': book['anyo_publicacion'],
                                        'autor': book['autor']})
 
-    return render(request, 'busquedaavanzada.html', {'formulario': formulario, 'libros': libros})
+    return render(request, 'busquedaavanzada.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def vista_libro(request, id_libro):
     libro = Libro.objects.get(pk=id_libro)
+    autores = ", ".join([a.nombre for a in libro.autor.all()])
+    relacionados = get_related_items_for_book(ItemFilteringDictionary.dictionary, libro)
     msg = None
 
     if request.method == 'POST' and request.user.is_authenticated:
@@ -347,7 +340,8 @@ def vista_libro(request, id_libro):
     else:
         saved = False
 
-    return render(request, 'libro.html', {'libro': libro, 'saved': saved, 'msg': msg})
+    return render(request, 'libro.html', {'libro': libro, 'autores': autores, 'saved': saved, 'msg': msg,
+                                          'relacionados': relacionados})
 
 
 @login_required
@@ -358,8 +352,8 @@ def libros_guardados(request):
 
 @login_required
 def recomendaciones_usuario(request):
-    # TODO: Sistemas de recomendación
-    pass
+    recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user, n=20)
+    return render(request, 'recomendaciones.html', {'libros': recomendados})
 
 
 def get_books_from(url):
@@ -375,10 +369,11 @@ def get_books_from(url):
         title = ''.join(book_title_url.stripped_strings)
         original_title = title
         book_url = book_title_url['href']
-        author = ''.join(book.find_all('a')[1].stripped_strings)
 
         f = urllib.request.urlopen(book_url)
         s = BeautifulSoup(f, "lxml")
+        authors_string = s.find('div', class_='profile__header').strong.text.strip()
+        authors = authors_string.split(',')
         book_info = s.find('div', class_='profile__data').find('ul').find_all('li')
         image_url = s.find('div', class_='profile__data').find('div', class_='photo').div.img['src']
         genre = None
@@ -398,12 +393,14 @@ def get_books_from(url):
         synopsis_div = s.find('div', class_='profile__text')
         if synopsis_div is not None:
             h2 = str(synopsis_div.div.h2)
+            p_colaborators = str(synopsis_div.div.find('p', class_='participate'))
             synopsis = synopsis_div.div.decode_contents()
             synopsis = synopsis.replace(h2, '')
+            synopsis = synopsis.replace(p_colaborators, '')
         else:
             synopsis = None
 
-        data = (title, original_title, year, author, genre, publisher, synopsis, image_url)
+        data = (title, original_title, year, authors, genre, publisher, synopsis, image_url)
         l.append(data)
     return l
 
@@ -426,4 +423,12 @@ def get_books():
 def populate_app(request):
     books = get_books()
     populate.populate_system(books)
+    return redirect('/')
+
+
+@user_passes_test(lambda u: u.is_superuser, login_url="/")
+def populate_recommendation_dict(request):
+    dictionary = calculate_similar_items()
+    ItemFilteringDictionary.dictionary = dictionary
+
     return redirect('/')

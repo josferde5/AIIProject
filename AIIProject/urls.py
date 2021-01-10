@@ -33,4 +33,6 @@ urlpatterns = [
     path('libro/<int:id_libro>', views.vista_libro),
     path('busqueda_avanzada/', views.busqueda_avanzada),
     path('guardados/', views.libros_guardados),
+    path('populate_recommendation_dict/', views.populate_recommendation_dict),
+    path('recomendaciones/', views.recomendaciones_usuario),
 ]

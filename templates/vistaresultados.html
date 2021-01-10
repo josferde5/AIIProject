@@ -13,6 +13,5 @@
         </div>
 {% endif %}
 {% if user.is_authenticated %}
-        <hr>
-        <p>Aquí irán los libros recomendados para el usuario.</p>
+    {% include 'vistaalgunasrecomendaciones.html' %}
 {% endif %}

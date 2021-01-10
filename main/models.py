@@ -35,7 +35,7 @@ class Libro(models.Model):
     titulo = models.CharField(max_length=250, verbose_name='Título')
     titulo_original = models.CharField(max_length=250, verbose_name='Título original')
     anyo_publicacion = models.PositiveSmallIntegerField(verbose_name='Año de publicación')
-    autor = models.ForeignKey(Autor, on_delete=models.SET_NULL, null=True)
+    autor = models.ManyToManyField(Autor)
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
     sinopsis = models.TextField(verbose_name='Sinopsis', null=True)
@@ -44,6 +44,9 @@ class Libro(models.Model):
 
     def __str__(self):
         return self.titulo
+
+    def __lt__(self, other):
+        return self.id < other.id
 
 
 class MyUserManager(BaseUserManager):

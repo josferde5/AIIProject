@@ -30,9 +30,15 @@
     </div>
     <div>
         {% if user.is_authenticated %}
-            <p>Hola, {{ user.username }}</p>
+            <div class="row">
+                <h2 class="text-center col-md-12">Hola, {{ user.username }}</h2>
+            </div>
+            {% include 'vistaalgunasrecomendaciones.html' %}
         {% else %}
-            <p>Hola ¿eres nuevo? <a href="/register">Regístrate</a></p>
+            <div class="row">
+                <h2 class="text-center col-md-12">Guarda los libros que más te gusten y nosotros te recomendaremos libros similares. Sin más.</h2>
+                <h4 class="text-center col-md-12">Solo tienes que <a href="/register">registrarte.</a></h4>
+            </div>
         {% endif %}
     </div>
     <div>
