@@ -1,4 +1,5 @@
-{% if libros %}
+{% load static %}
+{% if libros != None %}
         <div class="list-group">
         {% for libro in libros %}
             <a class="list-group-item list-group-item-action" href="/libro/{{ libro.id }}">
@@ -6,11 +7,106 @@
                     <h6>{{ libro.titulo }} ({{ libro.anyo_publicacion }})</h6>
                 </div>
                 <div class="row">
+                {% if libro.autores %}
+                    <p>{{ libro.autores }}</p>
+                {% else %}
                     <p>{{ libro.autor }}</p>
+                {% endif %}
                 </div>
             </a>
+        {% empty %}
+            <div class="col">
+                <div class="row justify-content-center">
+                    <h4>No hemos podido encontrar ningún libro.</h4>
+                </div>
+                <div class="row justify-content-center">
+                    <h6>Sentimos las molestias.</h6>
+                </div>
+                <div class="row justify-content-center">
+                    <img class="black-white" src="{% static 'img/no_books.png' %}" alt="No se han encontrado libros" width="200px">
+                </div>
+            </div>
         {% endfor %}
         </div>
+    {% if page and pagecount %}
+        <br>
+        <div class="pag">
+            <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+
+                <li class="page-item{% if page == 1 %} disabled{% endif %}">
+                {% if get %}
+                    <a class="btn page-link btn-outline-secondary pagination_link" href="/guardados?page=1" {% if page == 1 %} tabindex="-1"{% endif %}>1</a>
+                {% else %}
+                    <form id="formulario" method="post" action=''>{% csrf_token %}
+                  {% if not start %}
+                    <input type="hidden" id="{{ query_key }}" name="{{ query_key }}" value="{{ query_value }}" />
+                  {% else %}
+                    <input type="hidden" id="start" name="start" value="{{ start }}" />
+                    <input type="hidden" id="end" name="end" value="{{ end }}" />
+                  {% endif %}
+                    <input type="hidden" id="page" name="page" value="1"/>
+                    <button class="btn btn-outline-secondary" type="submit" {% if page == 1 %} disabled{% endif %}>1</button>
+                  </form>
+                {% endif %}
+
+                </li>
+
+              {% if space_after_first %}
+                  <li class="page-item disabled">
+                    <button class="btn btn-outline-secondary" type="button" disabled>...</button>
+                  </li>
+              {% endif %}
+
+              {% if rangeloop %}
+                  {% for i in rangeloop %}
+                      <li class="page-item {% if page == i %} disabled{% endif %}">
+                      {% if get %}
+                        <a class="btn page-link btn-outline-secondary pagination_link" href="/guardados?page={{ i }}" {% if page == i %} tabindex="-1"{% endif %}>{{ i }}</a>
+                      {% else %}
+                        <form id="formulario" method="post" action=''>{% csrf_token %}
+                            {% if not start %}
+                                <input type="hidden" id="{{ query_key }}" name="{{ query_key }}" value="{{ query_value }}" />
+                              {% else %}
+                                <input type="hidden" id="start" name="start" value="{{ start }}" />
+                                <input type="hidden" id="end" name="end" value="{{ end }}" />
+                              {% endif %}
+                            <input type="hidden" id="page" name="page" value="{{ i }}"/>
+                            <button class="btn btn-outline-secondary" type="submit" {% if page == i %} disabled{% endif %}>{{ i }}</button>
+                        </form>
+                      {% endif %}
+                      </li>
+                  {% endfor %}
+              {% endif %}
+
+              {% if space_before_last %}
+                  <li class="page-item disabled">
+                    <button class="btn btn-outline-secondary" type="button" disabled>...</button>
+                  </li>
+              {% endif %}
+
+              {% if pagecount != 1 %}
+                  <li class="page-item{% if page == pagecount %} disabled{% endif %}">
+                  {% if get %}
+                    <a class="btn page-link btn-outline-secondary pagination_link" href="/guardados?page={{ pagecount }}" {% if page == pagecount %} tabindex="-1"{% endif %}>{{ pagecount }}</a>
+                  {% else %}
+                    <form id="formulario" method="post" action=''>{% csrf_token %}
+                      {% if not start %}
+                        <input type="hidden" id="{{ query_key }}" name="{{ query_key }}" value="{{ query_value }}" />
+                      {% else %}
+                        <input type="hidden" id="start" name="start" value="{{ start }}" />
+                        <input type="hidden" id="end" name="end" value="{{ end }}" />
+                      {% endif %}
+                        <input type="hidden" id="page" name="page" value="{{ pagecount }}"/>
+                        <button class="btn btn-outline-secondary" type="submit" {% if page == pagecount %} disabled{% endif %}>{{ pagecount }}</button>
+                    </form>
+                  {% endif %}
+                  </li>
+              {% endif %}
+              </ul>
+            </nav>
+        </div>
+    {% endif %}
 {% endif %}
 {% if user.is_authenticated %}
     {% include 'vistaalgunasrecomendaciones.html' %}

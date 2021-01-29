@@ -4,15 +4,18 @@ from .models import Genero, Editorial
 
 class BusquedaPorGeneroForm(forms.Form):
     genre = forms.ModelChoiceField(queryset=Genero.objects.all())
+    page = forms.IntegerField(required=False)
 
 
 class BusquedaPorEditorialForm(forms.Form):
     publisher = forms.ModelChoiceField(queryset=Editorial.objects.all())
+    page = forms.IntegerField(required=False)
 
 
 class BusquedaPorAnyoPublicacionForm(forms.Form):
     start = forms.IntegerField(label="Buscar desde:")
     end = forms.IntegerField(label="Buscar hasta:")
+    page = forms.IntegerField(required=False)
 
     def clean(self):
         super(BusquedaPorAnyoPublicacionForm, self)
@@ -28,10 +31,12 @@ class BusquedaPorAnyoPublicacionForm(forms.Form):
 
 class BusquedaPorAutorForm(forms.Form):
     author = forms.CharField(label='Autor:')
+    page = forms.IntegerField(required=False)
 
 
 class BusquedaPorTituloForm(forms.Form):
     title = forms.CharField(label='Título:')
+    page = forms.IntegerField(required=False)
 
 
 class BusquedaAvanzadaForm(forms.Form):

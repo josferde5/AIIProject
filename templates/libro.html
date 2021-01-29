@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block tituloActiva %} active{% endblock %}
 
@@ -6,9 +7,9 @@
 
 {% block contenido %}
     {% if msg %}
-    <div class="alert alert-info" role="alert">
-        {{ msg }}
-    </div>
+        <div class="alert alert-info" role="alert">
+            {{ msg }}
+        </div>
     {% endif %}
     <div class="row">
         <div class="col-md-12 book-title">
@@ -27,12 +28,16 @@
     </div>
     <div class="row">
         <div class="col-md-6">
-            <img src="{{ libro.url_imagen }}"  alt=""/>
+            <img src="{{ libro.url_imagen }}" alt=""/>
         </div>
         <div class="col-md-6">
             <div class="row">
                 <strong class="col-md-12">Título original:</strong><br>
                 <p class="col-md-12">{{ libro.titulo_original }}</p>
+            </div>
+            <div class="row">
+                <strong class="col-md-12">Género:</strong><br>
+                <p class="col-md-12">{{ libro.genero }}</p>
             </div>
             <div class="row">
                 <strong class="col-md-12">Editorial:</strong><br>
@@ -43,7 +48,14 @@
                 <p class="col-md-12">{{ libro.anyo_publicacion }}</p>
             </div>
             <div class="row">
-                <h6>Aquí irá el enlace de compra, si hay.</h6>
+                <a href="{{ casa_libro }}" class="white_link">
+                    <div class="card">
+                        <div class="card-body casalibro">
+                            <div class="card-title text-center"><img src="{% static 'img/casa_libro.svg' %}" alt="Logo Casa del Libro"/></div>
+                            <p class="card-text">Comprueba si este libro está en la Casa del Libro</p>
+                        </div>
+                    </div>
+                </a>
             </div>
         </div>
     </div>
@@ -62,12 +74,12 @@
     </div>
     <div class="row">
         {% for book in relacionados %}
-        <div class="list-inline col-md-3 d-flex justify-content-center text-center">
-            <a class="list-inline-item list-group-item-action align-middle" href="/libro/{{ book.id }}">
-                <img src="{{ book.url_imagen }}"  alt="" width="120px" height="160px"/>
-                <h6>{{ book.titulo }}</h6>
-            </a>
-        </div>
+            <div class="list-inline col-md-3 d-flex justify-content-center text-center">
+                <a class="list-inline-item list-group-item-action align-middle" href="/libro/{{ book.id }}">
+                    <img src="{{ book.url_imagen }}" alt="" width="120px" height="160px"/>
+                    <h6>{{ book.titulo }}</h6>
+                </a>
+            </div>
         {% endfor %}
     </div>
 

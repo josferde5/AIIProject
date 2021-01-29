@@ -3,7 +3,9 @@ from .admin import UserCreateForm
 from django.contrib.auth import logout as log_out, login as log_in, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import user_passes_test, login_required
+from django.core.paginator import Paginator
 import urllib.request
+import urllib.parse
 from bs4 import BeautifulSoup
 import main.populate as populate
 from .forms import BusquedaPorGeneroForm, BusquedaPorEditorialForm, BusquedaPorAnyoPublicacionForm, \
@@ -13,12 +15,14 @@ from whoosh.qparser import QueryParser, FuzzyTermPlugin, PhrasePlugin, SequenceP
 from whoosh.query import NumericRange
 from .models import Libro
 from .recommendations import calculate_similar_items, ItemFilteringDictionary, get_recommended_items_for_user, \
-    get_related_items_for_book
-
+    get_related_items_for_book, serialize_rs_json
 import re
-
+import logging
 
 # Create your views here.
+
+
+logger = logging.getLogger(__name__)
 
 
 def index(request):
@@ -60,23 +64,32 @@ def logout(request):
     return redirect('/')
 
 
-def fuzzy_term_search(qp, searcher, search_query):
+def fuzzy_term_search(qp, searcher, search_query, page):
     qp.add_plugin(FuzzyTermPlugin())
     qp.remove_plugin_class(PhrasePlugin)
     qp.add_plugin(SequencePlugin())
     q = qp.parse(search_query)
-    books = searcher.search(q)
+    if page:
+        books = searcher.search_page(q, page)
+    else:
+        books = searcher.search(q)
 
     return books
 
 
-# TODO: Paginación
+def calculate_pagination(page, pagecount):
+    lowest_page_shown = page - 5 if page - 5 > 1 else 2
+    highest_page_shown = page + 5 if page + 5 < pagecount else pagecount
+    range_loop = range(lowest_page_shown, highest_page_shown) if highest_page_shown >= lowest_page_shown else None
+
+    return range_loop, page - 5 > 1, page + 5 < pagecount
 
 
 def buscar_por_genero(request):
     formulario = BusquedaPorGeneroForm()
     libros = None
     recomendados = None
+    pagecount, range_loop, space_after_first, space_before_last, page, genre_id = None, None, None, None, None, None
     if request.user.is_authenticated:
         recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
@@ -84,12 +97,19 @@ def buscar_por_genero(request):
         formulario = BusquedaPorGeneroForm(request.POST)
         if formulario.is_valid():
             genre = formulario.cleaned_data.get('genre')
+            genre_id = genre.id
+            page = formulario.cleaned_data.get('page')
+            if page is None:
+                page = 1
             ix = open_dir(populate.whoosh_dir)
             libros = []
             with ix.searcher() as searcher:
                 qp = QueryParser("genero", schema=ix.schema)
                 q = qp.parse(genre.nombre)
-                books = searcher.search(q)
+                books = searcher.search_page(q, page)
+                pagecount = books.pagecount
+                page = pagecount if page > pagecount else page
+                range_loop, space_after_first, space_before_last = calculate_pagination(page, books.pagecount)
                 for book in books:
                     libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
@@ -97,13 +117,18 @@ def buscar_por_genero(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporgenero.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaporgenero.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados,
+                   'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': pagecount,
+                   'page': page, 'query_key': 'genre', 'query_value': genre_id})
 
 
 def buscar_por_editorial(request):
     formulario = BusquedaPorEditorialForm()
     libros = None
     recomendados = None
+    pagecount, range_loop, space_after_first, space_before_last, page, publisher_id = None, None, None, None, None, None
     if request.user.is_authenticated:
         recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
@@ -111,12 +136,19 @@ def buscar_por_editorial(request):
         formulario = BusquedaPorEditorialForm(request.POST)
         if formulario.is_valid():
             publisher = formulario.cleaned_data.get('publisher')
+            publisher_id = publisher.id
+            page = formulario.cleaned_data.get('page')
+            if page is None:
+                page = 1
             ix = open_dir(populate.whoosh_dir)
             libros = []
             with ix.searcher() as searcher:
                 qp = QueryParser("editorial", schema=ix.schema)
                 q = qp.parse(publisher.nombre)
-                books = searcher.search(q)
+                books = searcher.search_page(q, page)
+                pagecount = books.pagecount
+                page = pagecount if page > pagecount else page
+                range_loop, space_after_first, space_before_last = calculate_pagination(page, books.pagecount)
                 for book in books:
                     libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
@@ -124,13 +156,18 @@ def buscar_por_editorial(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporeditorial.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaporeditorial.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados,
+                   'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': pagecount,
+                   'page': page, 'query_key': 'publisher', 'query_value': publisher_id})
 
 
 def buscar_por_anyo_publicacion(request):
     formulario = BusquedaPorAnyoPublicacionForm()
     libros = None
     recomendados = None
+    pagecount, range_loop, space_after_first, space_before_last, page, start, end = None, None, None, None, None, None, None
     if request.user.is_authenticated:
         recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
@@ -139,11 +176,17 @@ def buscar_por_anyo_publicacion(request):
         if formulario.is_valid():
             start = formulario.cleaned_data.get('start')
             end = formulario.cleaned_data.get('end')
+            page = formulario.cleaned_data.get('page')
+            if page is None:
+                page = 1
             ix = open_dir(populate.whoosh_dir)
             libros = []
             with ix.searcher() as searcher:
                 q = NumericRange('anyo_publicacion', start, end)
-                books = searcher.search(q)
+                books = searcher.search_page(q, page)
+                pagecount = books.pagecount
+                page = pagecount if page > pagecount else page
+                range_loop, space_after_first, space_before_last = calculate_pagination(page, books.pagecount)
                 for book in books:
                     libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
@@ -151,13 +194,18 @@ def buscar_por_anyo_publicacion(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporanyopublicacion.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaporanyopublicacion.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados,
+                   'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': pagecount,
+                   'page': page, 'start': start, 'end': end})
 
 
 def buscar_por_autor(request):
     formulario = BusquedaPorAutorForm()
     libros = None
     recomendados = None
+    pagecount, range_loop, space_after_first, space_before_last, page, autor = None, None, None, None, None, None
     if request.user.is_authenticated:
         recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
@@ -165,6 +213,9 @@ def buscar_por_autor(request):
         formulario = BusquedaPorAutorForm(request.POST)
         if formulario.is_valid():
             autor = str(formulario.cleaned_data.get('author'))
+            page = formulario.cleaned_data.get('page')
+            if page is None:
+                page = 1
             author_sp = autor.split()
 
             search_query = ''
@@ -177,11 +228,10 @@ def buscar_por_autor(request):
             libros = []
             with ix.searcher() as searcher:
                 qp = QueryParser('autor', ix.schema)
-                qp.add_plugin(FuzzyTermPlugin())
-                qp.remove_plugin_class(PhrasePlugin)
-                qp.add_plugin(SequencePlugin())
-                q = qp.parse(search_query)
-                books = searcher.search(q)
+                books = fuzzy_term_search(qp, searcher, search_query, page)
+                pagecount = books.pagecount
+                page = pagecount if page > pagecount else page
+                range_loop, space_after_first, space_before_last = calculate_pagination(page, books.pagecount)
 
                 for book in books:
                     libros.append({'id': book['id'],
@@ -190,13 +240,18 @@ def buscar_por_autor(request):
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaporautor.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaporautor.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados,
+                   'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': pagecount,
+                   'page': page, 'query_key': 'author', 'query_value': autor})
 
 
 def buscar_por_titulo(request):
     formulario = BusquedaPorTituloForm()
     libros = None
     recomendados = None
+    pagecount, range_loop, space_after_first, space_before_last, page, titulo = None, None, None, None, None, None
     if request.user.is_authenticated:
         recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
 
@@ -204,6 +259,9 @@ def buscar_por_titulo(request):
         formulario = BusquedaPorTituloForm(request.POST)
         if formulario.is_valid():
             titulo = str(formulario.cleaned_data.get('title'))
+            page = formulario.cleaned_data.get('page')
+            if page is None:
+                page = 1
             titulo_sp = titulo.split()
 
             search_query = ''
@@ -216,17 +274,23 @@ def buscar_por_titulo(request):
             libros = []
             with ix.searcher() as searcher:
                 qp = MultifieldParser(['titulo', 'titulo_original'], schema=ix.schema)
-                books = fuzzy_term_search(qp, searcher, search_query)
+                books = fuzzy_term_search(qp, searcher, search_query, page)
+                pagecount = books.pagecount
+                page = pagecount if page > pagecount else page
+                range_loop, space_after_first, space_before_last = calculate_pagination(page, books.pagecount)
 
                 for book in books:
-                    au = book['autor']
                     libros.append({'id': book['id'],
                                    'titulo': book['titulo'],
                                    'titulo_original': book['titulo_original'],
                                    'anyo_publicacion': book['anyo_publicacion'],
                                    'autor': book['autor']})
 
-    return render(request, 'busquedaportitulo.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaportitulo.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados,
+                   'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': pagecount,
+                   'page': page, 'query_key': 'title', 'query_value': titulo})
 
 
 def busqueda_avanzada(request):
@@ -265,7 +329,7 @@ def busqueda_avanzada(request):
                             author_search_query = author_search_query + s + "~2 "
                         author_search_query = u'"' + author_search_query.strip() + '"~2'
                         qp = MultifieldParser(['titulo', 'titulo_original'], schema=ix.schema)
-                        books = fuzzy_term_search(qp, searcher, author_search_query)
+                        books = fuzzy_term_search(qp, searcher, author_search_query, None)
 
                         for result in books:
                             docnums.add(result.docnum)
@@ -296,7 +360,7 @@ def busqueda_avanzada(request):
                     if publisher and len(docnums) > 0:
                         qp = QueryParser("editorial", schema=ix.schema)
                         q = qp.parse(publisher.nombre)
-                        books = searcher.search(q)
+                        books = searcher.search(q, filter=docnums)
                         docnums = set()
                         for result in books:
                             docnums.add(result.docnum)
@@ -313,7 +377,8 @@ def busqueda_avanzada(request):
                                        'anyo_publicacion': book['anyo_publicacion'],
                                        'autor': book['autor']})
 
-    return render(request, 'busquedaavanzada.html', {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
+    return render(request, 'busquedaavanzada.html',
+                  {'formulario': formulario, 'libros': libros, 'recomendados': recomendados})
 
 
 def vista_libro(request, id_libro):
@@ -321,9 +386,10 @@ def vista_libro(request, id_libro):
     autores = ", ".join([a.nombre for a in libro.autor.all()])
     relacionados = get_related_items_for_book(ItemFilteringDictionary.dictionary, libro)
     msg = None
+    url_casa_libro = 'https://www.casadellibro.com/?q=' + urllib.parse.quote_plus(
+        libro.titulo + ' ' + libro.autor.all()[0].nombre)
 
     if request.method == 'POST' and request.user.is_authenticated:
-        usuario = request.user
         if not libro in request.user.saved_books.all():
             request.user.saved_books.add(libro)
             msg = 'Libro guardado correctamente.'
@@ -341,23 +407,35 @@ def vista_libro(request, id_libro):
         saved = False
 
     return render(request, 'libro.html', {'libro': libro, 'autores': autores, 'saved': saved, 'msg': msg,
-                                          'relacionados': relacionados})
+                                          'relacionados': relacionados, 'casa_libro': url_casa_libro})
 
 
 @login_required
 def libros_guardados(request):
-    libros = usuario = request.user.saved_books.all()
-    return render(request, 'librosguardados.html', {'libros': libros})
+    libros_usuario = request.user.saved_books.all()
+    p = Paginator(libros_usuario, 10)
+    try:
+        page_number = int(request.GET.get('page', 1))
+    except ValueError:
+        page_number = 1
+    range_loop, space_after_first, space_before_last = calculate_pagination(page_number, p.num_pages)
+    page = p.get_page(page_number)
+    for l in page.object_list:
+        l.autores = ", ".join([a.nombre for a in l.autor.all()])
+    return render(request, 'librosguardados.html',
+                  {'libros': page.object_list, 'rangeloop': range_loop, 'space_after_first': space_after_first,
+                   'space_before_last': space_before_last, 'pagecount': p.num_pages,
+                   'page': page_number, 'get': True})
 
 
 @login_required
 def recomendaciones_usuario(request):
     recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user, n=20)
-    return render(request, 'recomendaciones.html', {'libros': recomendados})
+    libros = [(libro, ", ".join([a.nombre for a in libro.autor.all()])) for libro in recomendados]
+    return render(request, 'recomendaciones.html', {'libros': libros})
 
 
 def get_books_from(url):
-    # TODO: Hacer BS en Casa del Libro
     l = []
     f = urllib.request.urlopen(url)
     s = BeautifulSoup(f, "lxml")
@@ -407,15 +485,12 @@ def get_books_from(url):
 
 def get_books():
     l = []
-    f = urllib.request.urlopen('http://www.lecturalia.com/libros/ac/ultimos-actualizados')
-    s = BeautifulSoup(f, "lxml")
 
-    pagination_links = s.find('div', class_='pagination').find('div', class_='pages').find_all('a')
-    total_pages = int(pagination_links[len(pagination_links) - 1].string.strip())
+    for i in range(1, 21):
+        logger.info('Obteniendo libros de la página ' + str(i) + ' de Lecturalia')
+        books = get_books_from('http://www.lecturalia.com/libros/ac/ultimos-actualizados/' + str(i))
+        l.extend(books)
 
-    # for i in range(1, 2):
-    books = get_books_from('http://www.lecturalia.com/libros/ac/ultimos-actualizados/')  # + str(i))
-    l.extend(books)
     return l
 
 
@@ -430,5 +505,6 @@ def populate_app(request):
 def populate_recommendation_dict(request):
     dictionary = calculate_similar_items()
     ItemFilteringDictionary.dictionary = dictionary
+    serialize_rs_json()
 
     return redirect('/')

@@ -20,3 +20,31 @@ footer.footer {
 .save-icon {
     padding-left: 1%;
 }
+
+div.casalibro {
+    background-color: #004d43;
+}
+
+a.white_link {
+    color: white;
+}
+
+a.pagination_link {
+    color: #6c757d;
+    border-color: #6c757d;
+}
+
+a.pagination_link:hover {
+    color: #fff;
+    background-color: #6c757d;
+    border-color: #6c757d;
+}
+
+.bg-booknet {
+    background-color: #524a33;
+}
+
+img.black-white {
+    -webkit-filter: grayscale(100%);
+    filter: grayscale(100%);
+}

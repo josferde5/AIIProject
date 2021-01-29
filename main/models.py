@@ -26,21 +26,15 @@ class Editorial(models.Model):
         return self.nombre
 
 
-class CasaLibro(models.Model):
-    url = models.URLField(verbose_name='URL de la Casa del Libro', primary_key=True)
-    precio = models.FloatField(verbose_name='Precio')
-
-
 class Libro(models.Model):
     titulo = models.CharField(max_length=250, verbose_name='Título')
     titulo_original = models.CharField(max_length=250, verbose_name='Título original')
-    anyo_publicacion = models.PositiveSmallIntegerField(verbose_name='Año de publicación')
+    anyo_publicacion = models.IntegerField(verbose_name='Año de publicación')
     autor = models.ManyToManyField(Autor)
     genero = models.ForeignKey(Genero, on_delete=models.SET_NULL, null=True)
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
     sinopsis = models.TextField(verbose_name='Sinopsis', null=True)
     url_imagen = models.URLField(verbose_name='URL de la portada')
-    casa_libro = models.OneToOneField(CasaLibro, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.titulo

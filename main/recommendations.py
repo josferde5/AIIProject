@@ -4,6 +4,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 from nltk.corpus import stopwords
 import string
+import json
+import os
+import shutil
 
 stopwords = stopwords.words('spanish')
 
@@ -100,5 +103,36 @@ def get_related_items_for_book(item_match, book):
     return [book for (sim, book) in rankings][:4]
 
 
+def serialize_rs_json():
+    if os.path.exists(ItemFilteringDictionary.json_dir_path):
+        shutil.rmtree(ItemFilteringDictionary.json_dir_path)
+    os.mkdir(ItemFilteringDictionary.json_dir_path)
+
+    dict_json = {}
+    file = open(ItemFilteringDictionary.json_dir_path + '\\rs.json', 'w')
+    for k, values in ItemFilteringDictionary.dictionary.items():
+        key = k.id
+        list_values = [(float(d), v.id) for d, v in values]
+        dict_json[key] = list_values
+
+    json.dump(dict_json, file)
+    file.close()
+
+
+def deserialize_rs_json():
+    ItemFilteringDictionary.dictionary = {}
+    if os.path.exists(ItemFilteringDictionary.json_dir_path + '\\rs.json'):
+        file = open(ItemFilteringDictionary.json_dir_path + '\\rs.json', 'r')
+        data = json.load(file)
+        for k, values in data.items():
+            key = Libro.objects.get(pk=k)
+            list_values = [(Decimal(f), Libro.objects.get(pk=v)) for f, v in values]
+            ItemFilteringDictionary.dictionary[key] = list_values
+        file.close()
+
+
 class ItemFilteringDictionary:
     dictionary = {}
+    json_dir_path = 'RS'
+
+
