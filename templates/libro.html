@@ -47,15 +47,31 @@
                 <strong class="col-md-12">Año de publicación:</strong>
                 <p class="col-md-12">{{ libro.anyo_publicacion }}</p>
             </div>
-            <div class="row">
-                <a href="{{ casa_libro }}" class="white_link">
-                    <div class="card">
-                        <div class="card-body casalibro">
-                            <div class="card-title text-center"><img src="{% static 'img/casa_libro.svg' %}" alt="Logo Casa del Libro"/></div>
-                            <p class="card-text">Comprueba si este libro está en la Casa del Libro</p>
-                        </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            <a href="{{ casa_libro }}" class="white_link">
+                <div class="card h-100 text-center">
+                    <div class="card-body casalibro">
+                        <div class="card-title"><img src="{% static 'img/casa_libro.svg' %}" alt="Logo Casa del Libro"/></div>
+                        <p class="card-text">Comprueba si este libro está en la Casa del Libro</p>
                     </div>
-                </a>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-6">
+            <div class="card text-white bg-dark text-center">
+                <div class="card-body">
+                    <div class="card-title"><img src="{% static 'img/todostuslibros.png' %}" alt="Logo TodosTusLibros" width="100px"/></div>
+                {% if libro.todos_tus_libros %}
+                    <p class="card-text">Este libro está en Todos tus libros</p>
+                    <a href="{{ libro.todos_tus_libros.url }}" class="btn btn-primary btn-todostuslibros jus"><strong>{{ libro.todos_tus_libros.precio }}</strong></a>
+                {% else %}
+                    <p class="card-text">Este libro no está en Todos tus libros</p>
+                {% endif %}
+
+                </div>
             </div>
         </div>
     </div>

@@ -26,6 +26,11 @@ class Editorial(models.Model):
         return self.nombre
 
 
+class TodosTusLibros(models.Model):
+    url = models.URLField(verbose_name='URL de TodosTusLibros')
+    precio = models.CharField(max_length=20, verbose_name='Precio')
+
+
 class Libro(models.Model):
     titulo = models.CharField(max_length=250, verbose_name='Título')
     titulo_original = models.CharField(max_length=250, verbose_name='Título original')
@@ -35,6 +40,7 @@ class Libro(models.Model):
     editorial = models.ForeignKey(Editorial, on_delete=models.SET_NULL, null=True)
     sinopsis = models.TextField(verbose_name='Sinopsis', null=True)
     url_imagen = models.URLField(verbose_name='URL de la portada')
+    todos_tus_libros = models.OneToOneField(TodosTusLibros, on_delete=models.SET_NULL, null=True)
 
     def __str__(self):
         return self.titulo

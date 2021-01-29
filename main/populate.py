@@ -1,4 +1,4 @@
-from .models import Autor, Genero, Editorial, Libro
+from .models import Autor, Genero, Editorial, Libro, TodosTusLibros
 from whoosh.fields import Schema, TEXT, NUMERIC, KEYWORD, ID
 from whoosh.index import create_in
 import logging
@@ -36,15 +36,23 @@ def populate_system(books):
         genre_name = book[4]
         genre, created = Genero.objects.get_or_create(nombre=genre_name)
         publisher_name = book[5]
+        precio = book[8]
+        libro_url = book[9]
 
         if publisher_name is not None:
             publisher, created = Editorial.objects.get_or_create(nombre=publisher_name)
         else:
             publisher = None
 
+        if precio is not None and libro_url is not None:
+            todos_tus_libros = TodosTusLibros.objects.create(precio=precio, url=libro_url)
+            todos_tus_libros.save()
+        else:
+            todos_tus_libros = None
+
         l, created = Libro.objects.get_or_create(titulo=book[0], titulo_original=book[1], anyo_publicacion=year,
                                                  genero=genre, editorial=publisher, sinopsis=book[6],
-                                                 url_imagen=book[7])
+                                                 url_imagen=book[7], todos_tus_libros=todos_tus_libros)
         if created:
             for a in authors:
                 author, created = Autor.objects.get_or_create(nombre=a)

@@ -478,7 +478,26 @@ def get_books_from(url):
         else:
             synopsis = None
 
-        data = (title, original_title, year, authors, genre, publisher, synopsis, image_url)
+        todos_libros_query = 'https://www.todostuslibros.com/busquedas?titulo=' + urllib.parse.quote_plus(title) + \
+                             '&autor=' + urllib.parse.quote_plus(authors[0])
+        f = urllib.request.urlopen(todos_libros_query)
+        s = BeautifulSoup(f, "lxml")
+
+        todos_libros_list = s.find_all('li', class_='book')
+        if len(todos_libros_list) > 0:
+            libro_url_precio = todos_libros_list[0].find('div', class_='book-action').div
+            precio_string = libro_url_precio.find('div', class_='book-price')
+            if precio_string.strong is None:
+                precio = 'Ver precio' if precio_string.text == 'Precio desconocido' else precio_string.text
+            else:
+                precio = precio_string.strong.text.strip()
+
+            libro_url = libro_url_precio.find('div', class_='book-location').a['href']
+        else:
+            precio = None
+            libro_url = None
+
+        data = (title, original_title, year, authors, genre, publisher, synopsis, image_url, precio, libro_url)
         l.append(data)
     return l
 
@@ -486,7 +505,7 @@ def get_books_from(url):
 def get_books():
     l = []
 
-    for i in range(1, 21):
+    for i in range(1, 11):
         logger.info('Obteniendo libros de la página ' + str(i) + ' de Lecturalia')
         books = get_books_from('http://www.lecturalia.com/libros/ac/ultimos-actualizados/' + str(i))
         l.extend(books)

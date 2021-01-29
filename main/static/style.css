@@ -48,3 +48,15 @@ img.black-white {
     -webkit-filter: grayscale(100%);
     filter: grayscale(100%);
 }
+
+.btn-todostuslibros {
+  color: #fff;
+  background-color: #ee6314;
+  border-color: #ee6314;
+}
+
+.btn-todostuslibros:hover {
+  color: #fff;
+  background-color: #9E3D06;
+  border-color: #9E3D06;
+}
