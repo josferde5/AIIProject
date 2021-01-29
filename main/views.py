@@ -412,6 +412,10 @@ def vista_libro(request, id_libro):
 
 @login_required
 def libros_guardados(request):
+    recomendados = None
+    if request.user.is_authenticated:
+        recomendados = get_recommended_items_for_user(ItemFilteringDictionary.dictionary, request.user)
+
     libros_usuario = request.user.saved_books.all()
     p = Paginator(libros_usuario, 10)
     try:
@@ -425,7 +429,7 @@ def libros_guardados(request):
     return render(request, 'librosguardados.html',
                   {'libros': page.object_list, 'rangeloop': range_loop, 'space_after_first': space_after_first,
                    'space_before_last': space_before_last, 'pagecount': p.num_pages,
-                   'page': page_number, 'get': True})
+                   'page': page_number, 'get': True,'recomendados': recomendados})
 
 
 @login_required

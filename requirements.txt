@@ -1,0 +1,8 @@
+nltk
+lxml
+numpy
+Django
+bs4
+beautifulsoup4
+Whoosh
+scikit-learn
